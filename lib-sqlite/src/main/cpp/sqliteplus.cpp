@@ -54,21 +54,6 @@ Java_com_leewug_src_sqliteplus_ConnectionPool_nativeBeginTransaction(JNIEnv *env
     }
 }
 
-jstring charTojstring(JNIEnv* env, const char* pat) {
-    //定义java String类 strClass
-    jclass strClass = (env)->FindClass("java/lang/String");
-    //获取String(byte[],String)的构造器,用于将本地byte[]数组转换为一个新String
-    jmethodID ctorID = (env)->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
-    //建立byte数组
-    jbyteArray bytes = (env)->NewByteArray(strlen(pat));
-    //将char* 转换为byte数组
-    (env)->SetByteArrayRegion(bytes, 0, strlen(pat), (jbyte*) pat);
-    // 设置String, 保存语言类型,用于byte数组转换至String时的参数
-    jstring encoding = (env)->NewStringUTF("GB2312");
-    //将byte数组转换为java String,并输出
-    return (jstring) (env)->NewObject(strClass, ctorID, bytes, encoding);
-}
-
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_leewug_src_sqliteplus_ConnectionPool_nativeQuery(JNIEnv *env, jobject thiz, jlong db_ptr,
@@ -78,7 +63,7 @@ Java_com_leewug_src_sqliteplus_ConnectionPool_nativeQuery(JNIEnv *env, jobject t
         sqdb::Db db = sqdb::Db((sqlite3 *) db_ptr);
         sqdb::Statement stmt(db.Query(sql));
         stmt.Next(false);
-        const char *ret = stmt.GetField(1);
+        const char *ret = stmt.GetField(0);
         jstring result = env->NewStringUTF(ret);
         env->ReleaseStringUTFChars(j_sql, sql);
         stmt.release();
