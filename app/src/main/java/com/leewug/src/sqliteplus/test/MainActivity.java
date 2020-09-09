@@ -1,6 +1,8 @@
 package com.leewug.src.sqliteplus.test;
 
 import android.Manifest;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -20,25 +22,31 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-        Database database = Database.openOrCreateDatabase(getApplicationContext(),
-                new File(Environment.getExternalStorageDirectory(),"aa.db").getAbsolutePath());
-        database.createTable("test","w","a");
+//        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
 
+
+        //-----------------原生插入-----------------------
         long start = System.currentTimeMillis();
-
-//        Object[][] values = new Object[1000000][];
-//        for (int i = 0; i < values.length; i++) {
-//            values[i] = new Object[2];
-//            values[i][0] = "314312";
-//            values[i][1] = "fdsafdsa";
+//        SQLiteDatabase sqLiteDatabase = openOrCreateDatabase("bb.db",MODE_PRIVATE, null);
+//        sqLiteDatabase.execSQL("create table bb(A TEXT,B TEXT);");
+//        sqLiteDatabase.beginTransaction();
+//        SQLiteStatement sqLiteStatement = sqLiteDatabase.compileStatement("insert into bb values(?,?);");
+//        for (int i = 0; i < 100000; i++) {
+//            sqLiteStatement.clearBindings();
+//            sqLiteStatement.bindString(1,"aaaaaa");
+//            sqLiteStatement.bindString(2,"bbbbbb");
+//            sqLiteStatement.executeInsert();
 //        }
-//        database.insertBatch("insert into test values(null,?,?);",values);
+//        sqLiteDatabase.setTransactionSuccessful();
+//        sqLiteStatement.close();
+//        Log.e("--------------", "原生插入耗时: "+(System.currentTimeMillis()-start) );
 
-        Log.e("------", "onCreate: "+database.executeQuery("select * from test where a='aaaaaa';"));
-//        database.testInsert(1000000);
+        //-----------------自定义C增强插入-----------------------
+        start = System.currentTimeMillis();
+        Database database = Database.openOrCreateDatabase(getApplicationContext(),getDatabasePath("aa.db").getAbsolutePath());
+        database.createTable("test","w","a");
         Statement statement = database.beginTransaction("insert into test values(null,?,?);");
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 100000; i++) {
             statement.bindString(1,"wwwwww");
             statement.bindString(2,"aaaaaa");
             int ret = statement.execute();
@@ -47,6 +55,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         statement.commitTransaction();
-        Log.e("--------------", "onCreate: "+(System.currentTimeMillis()-start) );
+        Log.e("--------------", "自定义C增强插入耗时: "+(System.currentTimeMillis()-start) );
     }
 }

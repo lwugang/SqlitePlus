@@ -140,6 +140,7 @@ Java_com_leewug_src_sqliteplus_ConnectionPool_nativeOpenDb(JNIEnv *env, jobject 
         db.exec("PRAGMA journal_mode = WAL;");
         addr = db.toAddr();
     } catch (sqdb::Exception e) {
+        env->ReleaseStringUTFChars(databasePath, dbPath);
         __android_log_print(ANDROID_LOG_ERROR, "sqliteplus", "error %s", e.GetErrorMsg());
         return -1;
     }

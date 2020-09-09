@@ -17,7 +17,7 @@ aux_source_directory( . NATIVE_SRC )
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-        sqliteplus
+        sqlite3plus
 
         # Sets the library as a shared library.
         SHARED
@@ -42,7 +42,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-        sqliteplus
+        sqlite3plus
 
         # Links the target library to the log library
         # included in the NDK.

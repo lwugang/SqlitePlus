@@ -1,7 +1,5 @@
 package com.leewug.src.sqliteplus;
 
-import android.util.Log;
-
 import java.util.Arrays;
 
 /**
@@ -40,6 +38,10 @@ public class Statement {
 
     public void bindInt(int index, int value) {
         bind(index, value);
+    }
+
+    public void bindNull(int index) {
+        bind(index, null);
     }
 
     public void bindString(int index, String value) {

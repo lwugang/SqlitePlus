@@ -14,11 +14,12 @@ public final class ConnectionPool {
 
     private long dbPtr;
 
-    private ConnectionPool(String path) {
+    ConnectionPool(String path) {
         this.path = path;
         if (!referenceCache.isEmpty()) {
             dbPtr = referenceCache.get(path);
-        } else {
+        }
+        if (dbPtr == 0) {
             dbPtr = nativeOpenDb(path);
             if (dbPtr == -1) {
                 throw new DatabaseException();
@@ -26,6 +27,7 @@ public final class ConnectionPool {
             //缓存数据库连接
             referenceCache.put(path, dbPtr);
         }
+
     }
 
     public static ConnectionPool create(String path) {
@@ -81,10 +83,10 @@ public final class ConnectionPool {
 
     native int nativeEndTransaction(long dbPtr, long statementPtr, boolean success);
 
-    native int nativeInsert(long dbPtr, String sql,Object[][] values);
+    native int nativeInsert(long dbPtr, String sql, Object[][] values);
 
     static {
-        System.loadLibrary("sqliteplus");
+        System.loadLibrary("sqlite3plus");
     }
 
 
@@ -105,7 +107,7 @@ public final class ConnectionPool {
 
     public int nextTransaction(long statementPtr, Object[] args) {
         checkDb();
-        return nativeNextStatement(dbPtr, statementPtr, args);
+        return nativeNextStatement(dbPtr,statementPtr,args);
     }
 
     public int execute(String sql) {
@@ -126,11 +128,12 @@ public final class ConnectionPool {
 
     /**
      * 批量插入
+     *
      * @param sql
      * @param values
      */
-    public void insert(String sql,Object[][] values){
+    public void insert(String sql, Object[][] values) {
         checkDb();
-        nativeInsert(dbPtr,sql,values);
+        nativeInsert(dbPtr, sql, values);
     }
 }

@@ -14,10 +14,11 @@ import java.io.File;
 public final class Database {
     private final Context context;
     private final ConnectionPool pool;
+    private String dbPath;
 
-    public Database(Context context, String path) {
+    Database(Context context, String path) {
         this.context = context;
-        String dbPath = path;
+        this.dbPath = path;
         if (!path.contains(File.separator)) {
             dbPath = context.getDatabasePath(path).getAbsolutePath();
         }
@@ -66,10 +67,12 @@ public final class Database {
     /**
      * 快速给表创建索引
      *
-     * @param tableName
+     * @param tableName 表名
+     * @param indexName 索引名
+     * @param columns   索引列
      */
-    public void createIndex(String tableName, String... columns) {
-        StringBuilder sb = new StringBuilder(String.format("CREATE INDEX IF NOT EXISTS IDX_%s_QUERY ON %s (", tableName, tableName));
+    public void createIndex(String tableName, String indexName, String... columns) {
+        StringBuilder sb = new StringBuilder(String.format("CREATE INDEX IF NOT EXISTS %s ON %s (", indexName, tableName));
         for (int i = 0; i < columns.length; i++) {
             if (i != 0) {
                 sb.append(",");
@@ -81,10 +84,19 @@ public final class Database {
     }
 
     /**
-     * 快速创建一个表，所有字段类型默认 text
+     * 删除索引
      *
-     * @param tableName
-     * @param columns
+     * @param indexName 索引名称
+     */
+    public void dropIndex(String indexName) {
+        execute("DROP INDEX " + indexName);
+    }
+
+    /**
+     * 快速创建一个表，所有字段类型默认 text,默认带有自增列 _id
+     *
+     * @param tableName 表名
+     * @param columns 列
      */
     public void createTable(String tableName, String... columns) {
         StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS %s(_id INTEGER PRIMARY KEY AUTOINCREMENT ,");
@@ -101,11 +113,44 @@ public final class Database {
     }
 
     /**
+     * 删除表
+     *
+     * @param tableName
+     */
+    public void dropTable(String tableName) {
+        String sql = "DROP TABLE IF EXISTS " + tableName;
+        execute(sql);
+    }
+
+    /**
+     * 删除数据库文件
+     */
+    public void deleteDatabase() {
+        this.close();
+        File file = new File(dbPath);
+        String fileName = file.getName();
+        if (file.exists()) {
+            file.delete();
+        }
+        this.deleteFile(file.getParent(), fileName + "-journal");
+        this.deleteFile(file.getParent(), fileName + "-wal");
+        this.deleteFile(file.getParent(), fileName + "-shm");
+    }
+
+    void deleteFile(String parent, String filePath) {
+        File file = new File(parent, filePath);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+
+    /**
      * 批量插入
+     *
      * @param sql
      * @param values
      */
-    public void insertBatch(String sql,Object[][] values){
+    public void insertBatch(String sql, Object[][] values) {
         pool.insert(sql, values);
     }
 
