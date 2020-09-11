@@ -25,7 +25,9 @@ Java_com_leewug_src_sqliteplus_ConnectionPool_nativeExecute(JNIEnv *env, jobject
     const char *sql = env->GetStringUTFChars(j_sql, 0);
     try {
         sqdb::Db db = sqdb::Db((sqlite3 *) db_ptr);
+        db.BeginTransaction();
         db.exec(sql);
+        db.CommitTransaction();
         env->ReleaseStringUTFChars(j_sql, sql);
         return 0;
     } catch (sqdb::Exception e) {
